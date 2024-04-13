@@ -1,17 +1,37 @@
 package org.example.minesweeper;
 
+import javafx.scene.control.Button;
+
 import java.util.ArrayList;
 import java.util.Random;
 
 public class Board {
     private final ArrayList<ArrayList<Tile>> BOARD = new ArrayList<>();
-    private int size = 5;
-    private int mineCount = 10;
+    private final int size;
+    private final int mineCount;
 
-    public Board() {}
     public Board(int size, int mineCount) {
         this.size = size;
         this.mineCount = mineCount;
+        this.initBoard();
+    }
+
+    /**
+     * Create the game board with empty tiles.
+     */
+    private void initBoard() {
+        BOARD.clear();
+
+        // Create board with size
+        for (int iy = 0; iy < size; iy++) {
+            ArrayList<Tile> row = new ArrayList<>();
+
+            for (int ix = 0; ix < size; ix++) {
+                row.add(new Tile());
+            }
+
+            BOARD.add(row);
+        }
     }
 
     /**
@@ -60,20 +80,8 @@ public class Board {
      * @param x - Ensure tile X is safe.
      * @param y - Ensure tile Y is safe.
      */
-    public void initBoard(int x, int y) {
+    public void populateBoard(int x, int y) {
         Random rand = new Random();
-        BOARD.clear();
-
-        // Create board with size
-        for (int iy = 0; iy < size; iy++) {
-            ArrayList<Tile> row = new ArrayList<>();
-
-            for (int ix = 0; ix < size; ix++) {
-                row.add(new Tile());
-            }
-
-            BOARD.add(row);
-        }
 
         // Populate mines, ensure X and Y are safe
         for (int i = 0; i < mineCount; i++) {
@@ -110,11 +118,52 @@ public class Board {
 
         // TODO: Probably need to check the tile at x/y for mines before revealing nearby...
 
-        if (checkEmpty(x, top)) { revealEmpty(x, top); }
-        if (checkEmpty(x, bottom)) { revealEmpty(x, bottom); }
+        if (checkEmpty(x, top)) revealEmpty(x, top);
+        if (checkEmpty(x, bottom)) revealEmpty(x, bottom);
 
-        if (checkEmpty(left, y)) { revealEmpty(left, y); }
-        if (checkEmpty(right, y)) { revealEmpty(right, y); }
+        if (checkEmpty(left, y)) revealEmpty(left, y);
+        if (checkEmpty(right, y)) revealEmpty(right, y);
+    }
+
+    /**
+     * Update tiles when board is clicked.
+     *
+     * @param x    - The X position on the board.
+     * @param y    - The Y position on the board.
+     * @param flag - Did the user click or place a flag?
+     * @return mine - Was the clicked tile a mine?
+     */
+    public boolean clickBoard(int x, int y, boolean flag) {
+        Tile t = BOARD.get(y).get(x);
+
+        System.out.printf("Clicked x: %d, y: %d\n", x, y);
+
+        t.setFlagged(flag);
+
+        // If visible, don't let the user click.
+        // If flagged, don't do anything else.
+        if (t.isVisible() || flag) {
+            return false;
+        }
+
+        t.setVisible(true);
+
+        if (t.getNearby() == 0 && !t.isMine()) {
+            revealEmpty(x, y);
+        }
+
+        return t.isMine();
+    }
+
+    /**
+     * Get the button element from the tile at X and Y.
+     *
+     * @param x - X position on the board.
+     * @param y - Y position on the board.
+     * @return btn - The tile's button.
+     */
+    public Button getButton(int x, int y) {
+        return BOARD.get(y).get(x).btn;
     }
 
     /**
