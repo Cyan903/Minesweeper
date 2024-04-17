@@ -1,44 +1,80 @@
 package org.example.minesweeper;
 
 import javafx.application.Application;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.collections.FXCollections;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.text.*;
+import javafx.geometry.*;
+
 public class Game extends Application {
-    // Game state
     private Board board;
-    private final int size = 3; // TODO: Custom board size
-    private final int mines = 1; // TODO: Custom mine amount
+    private int size;
+    private int mines;
     private boolean playing;
     private boolean firstClick;
 
     // UI state
+    private BorderPane root;
+    private ComboBox<String> diff;
+    private GridPane tiles;
     private Button start;
     private Label flags;
     private Label status;
-    private BorderPane root;
-    private GridPane tiles;
 
-    // Game management
+    /**
+     * Set the tile size and mine count based on the difficulty.
+     */
+    private void setDifficulty() {
+        // TODO: Custom difficulty
+        // TODO: Set tile size
+        //  - btn.setMinHeight(25);
+        //  - btn.setMinWidth(25);
+
+        switch (diff.getValue()) {
+            case "Easy":
+                size = 10;
+                mines = 8;
+                break;
+
+            case "Medium":
+                size = 10;
+                mines = 15;
+                break;
+
+            case "Hard":
+                size = 20;
+                mines = 25;
+                break;
+        }
+    }
+
+    /**
+     * Reset all elements and start the game.
+     */
     private void startGame() {
+        StackPane main = new StackPane();
+
         board = new Board(size, mines);
         tiles = new GridPane();
 
-        start.setText("Restart");
-        flags.setText("0");
+        start.setText("Stop");
+        flags.setText("0/" + mines);
         status.setText("");
+
+        diff.setDisable(true);
+        tiles.setOpacity(1);
+
         firstClick = true;
 
         tiles.setMinSize(400, 200);
         tiles.setPadding(new Insets(10, 10, 10, 10));
+        tiles.setHgap(2);
+        tiles.setVgap(2);
 
         // Add actions to buttons
         for (int y = 0; y < size; y++) {
@@ -62,14 +98,16 @@ public class Game extends Application {
                             firstClick = false;
                         } else if (board.clickBoard(bx, by)) {
                             board.revealAll();
+                            tiles.setOpacity(0.3);
                             status.setText("You lose!");
                         }
                     }
 
-                    flags.setText(Integer.toString(board.flagCount));
+                    flags.setText(board.flagCount + "/" + mines);
 
                     if (board.checkWin() && !firstClick) {
                         board.revealAll();
+                        tiles.setOpacity(0.3);
                         status.setText("You win!");
                     }
                 });
@@ -78,14 +116,21 @@ public class Game extends Application {
             }
         }
 
+        main.getChildren().addAll(tiles, status);
+
         tiles.setAlignment(Pos.CENTER);
-        root.setCenter(tiles);
+        root.setCenter(main);
     }
 
+    /**
+     * Stop the game.
+     */
     private void stopGame() {
         start.setText("Start");
-        flags.setText("0");
+        flags.setText("0/?");
         status.setText("");
+
+        diff.setDisable(false);
 
         // Remove the board
         for (int y = 0; y < size; y++) {
@@ -95,17 +140,34 @@ public class Game extends Application {
         }
     }
 
-
+    /**
+     * Main entrypoint. Initialize the elements and create the game.
+     *
+     * @param primaryStage - The primary stage.
+     */
     @Override
     public void start(Stage primaryStage) {
         HBox control = new HBox(8);
+        Region right = new Region();
+
+        HBox.setHgrow(right, Priority.ALWAYS);
+        control.setPadding(new Insets(10, 10, 4, 4));
 
         // Create elements
         root = new BorderPane();
+        diff = new ComboBox<>(FXCollections.observableArrayList("Easy", "Medium", "Hard"));
+
         start = new Button("Start");
         status = new Label("");
-        flags = new Label("0");
+        flags = new Label("0/?");
 
+        status.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.ITALIC, 20));
+        flags.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 16));
+        diff.setValue("Easy");
+        setDifficulty();
+
+        // Events
+        diff.setOnAction(e -> setDifficulty());
         start.setOnAction(e -> {
             playing = !playing;
 
@@ -113,7 +175,8 @@ public class Game extends Application {
             else stopGame();
         });
 
-        control.getChildren().addAll(start, flags, status);
+        // Add elements
+        control.getChildren().addAll(diff, start, right, flags);
         root.setTop(control);
 
         // Create scene
@@ -121,7 +184,6 @@ public class Game extends Application {
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Minesweeper");
-        primaryStage.setResizable(false);
         primaryStage.show();
     }
 
