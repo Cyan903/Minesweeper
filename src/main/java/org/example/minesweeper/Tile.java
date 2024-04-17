@@ -78,7 +78,8 @@ public class Tile {
         btn.setTextFill(Color.TRANSPARENT);
 
         if (flagged) {
-            btn.setTextFill(Color.PINK);
+            btn.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.ITALIC, 16));
+            btn.setTextFill(Color.RED);
             return;
         }
 
