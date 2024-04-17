@@ -13,33 +13,14 @@ public class Tile {
     public Tile() {}
 
     // Getters
-    public int getNearby() {
-        return nearby;
-    }
-
-    public boolean isMine() {
-        return mine;
-    }
-
-    public boolean isFlagged() {
-        return flagged;
-    }
-
-    public boolean isVisible() {
-        return visible;
-    }
+    public int getNearby() { return nearby; }
+    public boolean isMine() { return mine; }
+    public boolean isFlagged() { return flagged; }
+    public boolean isVisible() { return visible; }
 
     // Setters
-    public void setNearby(int nearby) {
-        this.nearby = nearby;
-        this.updateText();
-    }
-
-    public void setMine(boolean mine) {
-        this.mine = mine;
-        this.updateText();
-    }
-
+    public void setNearby(int nearby) { this.nearby = nearby; }
+    public void setMine(boolean mine) { this.mine = mine; }
     public void setFlagged(boolean flagged) {
         this.flagged = flagged;
         this.updateText();
@@ -54,7 +35,7 @@ public class Tile {
      * Update the button's text.
      */
     private void updateText() {
-        if (visible) {
+        if (visible || flagged) {
             btn.setText(toString());
             return;
         }

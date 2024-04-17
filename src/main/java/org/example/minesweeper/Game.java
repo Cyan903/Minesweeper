@@ -6,6 +6,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -14,40 +15,26 @@ import javafx.stage.Stage;
 public class Game extends Application {
     // Game state
     private Board board;
-    private final int size = 10; // TODO: Custom board size
-    private final int mines = 10; // TODO: Custom mine amount
+    private final int size = 3; // TODO: Custom board size
+    private final int mines = 1; // TODO: Custom mine amount
     private boolean playing;
     private boolean firstClick;
 
     // UI state
     private Button start;
+    private Label flags;
+    private Label status;
     private BorderPane root;
     private GridPane tiles;
-
-    private void createControl() {
-        HBox control = new HBox(8);
-        Label lmines = new Label("Mines: " + mines);
-        Label lsize = new Label("Size: " + size);
-
-        start = new Button("Start");
-
-        start.setOnAction(e -> {
-            playing = !playing;
-
-            if (playing) startGame();
-            else stopGame();
-        });
-
-        control.getChildren().addAll(lmines, lsize, start);
-        root.setTop(control);
-    }
 
     // Game management
     private void startGame() {
         board = new Board(size, mines);
         tiles = new GridPane();
 
-        start.setText("Give up!");
+        start.setText("Restart");
+        flags.setText("0");
+        status.setText("");
         firstClick = true;
 
         tiles.setMinSize(400, 200);
@@ -61,17 +48,30 @@ public class Game extends Application {
                 final int by = y;
                 final int bx = x;
 
-                btn.setOnAction(e -> {
-                    if (firstClick) {
-                        board.populateBoard(bx, by);
-                        board.revealEmpty(bx, by);
+                btn.setOnMouseClicked(e -> {
+                    boolean flagged = e.getButton() == MouseButton.SECONDARY;
 
-                        firstClick = false;
-                        return;
+                    if (flagged) {
+                        board.flagBoard(bx, by);
+                    } else {
+                        if (firstClick) {
+                            board.populateBoard(bx, by);
+                            board.clickBoard(bx, by);
+                            board.printBoard(true);
+
+                            firstClick = false;
+                        } else if (board.clickBoard(bx, by)) {
+                            board.revealAll();
+                            status.setText("You lose!");
+                        }
                     }
 
-                    // TODO: Flag
-                    board.clickBoard(bx, by, false);
+                    flags.setText(Integer.toString(board.flagCount));
+
+                    if (board.checkWin() && !firstClick) {
+                        board.revealAll();
+                        status.setText("You win!");
+                    }
                 });
 
                 tiles.add(btn, bx, by);
@@ -84,8 +84,10 @@ public class Game extends Application {
 
     private void stopGame() {
         start.setText("Start");
-        firstClick = false;
+        flags.setText("0");
+        status.setText("");
 
+        // Remove the board
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
                 tiles.getChildren().remove(board.getButton(x, y));
@@ -93,17 +95,33 @@ public class Game extends Application {
         }
     }
 
+
     @Override
     public void start(Stage primaryStage) {
-        root = new BorderPane();
+        HBox control = new HBox(8);
 
-        createControl();
+        // Create elements
+        root = new BorderPane();
+        start = new Button("Start");
+        status = new Label("");
+        flags = new Label("0");
+
+        start.setOnAction(e -> {
+            playing = !playing;
+
+            if (playing) startGame();
+            else stopGame();
+        });
+
+        control.getChildren().addAll(start, flags, status);
+        root.setTop(control);
 
         // Create scene
         Scene scene = new Scene(root, 400, 400);
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Minesweeper");
+        primaryStage.setResizable(false);
         primaryStage.show();
     }
 
