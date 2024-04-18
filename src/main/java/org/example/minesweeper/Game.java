@@ -3,6 +3,7 @@ package org.example.minesweeper;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.scene.input.MouseButton;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -21,6 +22,7 @@ public class Game extends Application {
     // UI state
     private BorderPane root;
     private VBox customs;
+    private HBox customContainer;
     private ComboBox<String> diff;
     private GridPane tiles;
     private Button start;
@@ -85,8 +87,8 @@ public class Game extends Application {
                 break;
 
             case "Custom":
-                HBox container = new HBox(8);
-                container.setPadding(new Insets(10, 10, 4, 4));
+                customContainer = new HBox(8);
+                customContainer.setPadding(new Insets(10, 10, 4, 4));
 
                 TextField sizeField = new TextField();
                 TextField mineField = new TextField();
@@ -98,8 +100,8 @@ public class Game extends Application {
                 sizeField.textProperty().addListener((observable, old, n) -> readDifficulty(n, true));
                 mineField.textProperty().addListener((observable, old, n) -> readDifficulty(n, false));
 
-                container.getChildren().addAll(sizeField, mineField);
-                customs.getChildren().add(container);
+                customContainer.getChildren().addAll(sizeField, mineField);
+                customs.getChildren().add(customContainer);
 
                 break;
         }
@@ -127,6 +129,12 @@ public class Game extends Application {
         tiles.setPadding(new Insets(10, 10, 10, 10));
         tiles.setHgap(2);
         tiles.setVgap(2);
+
+        if (customs.getChildren().size() >= 2) {
+            for (Node custom : customContainer.getChildren()) {
+                custom.setDisable(true);
+            }
+        }
 
         // Add actions to buttons
         for (int y = 0; y < size; y++) {
@@ -181,6 +189,12 @@ public class Game extends Application {
         status.setText("");
 
         diff.setDisable(false);
+
+        if (customs.getChildren().size() >= 2) {
+            for (Node c : customContainer.getChildren()) {
+                c.setDisable(false);
+            }
+        }
 
         // Remove the board
         for (int y = 0; y < size; y++) {
