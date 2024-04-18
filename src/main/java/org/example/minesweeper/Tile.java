@@ -88,7 +88,7 @@ public class Tile {
 
             if (mine) {
                 btn.setTextFill(Color.BLACK);
-            } else if (nearby < COLORS.length && nearby > 0) {
+            } else if (nearby <= COLORS.length && nearby > 0) {
                 btn.setTextFill(Paint.valueOf(COLORS[nearby-1]));
             }
         }

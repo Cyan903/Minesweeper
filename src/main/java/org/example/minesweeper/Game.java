@@ -20,6 +20,7 @@ public class Game extends Application {
 
     // UI state
     private BorderPane root;
+    private VBox customs;
     private ComboBox<String> diff;
     private GridPane tiles;
     private Button start;
@@ -27,13 +28,45 @@ public class Game extends Application {
     private Label status;
 
     /**
+     * Read and validate custom mine count and field size.
+     *
+     * @param text - The text to parse.
+     * @param type - What type of difficulty? True = size.
+     */
+    private void readDifficulty(String text, boolean type) {
+        final int MAX_SIZE = 50;
+        final int MIN_SIZE = 4;
+
+        int val = -1;
+
+        try {
+            val = Integer.parseInt(text);
+        } catch (NumberFormatException ignored) {}
+
+        if (type) size = val;
+        else mines = val;
+
+        if (size <= MIN_SIZE || size >= MAX_SIZE || mines <= MIN_SIZE || (mines > (size * size) - 1)) {
+            flags.setText("Invalid custom values!");
+            start.setDisable(true);
+            return;
+        }
+
+        flags.setText("0/?");
+        start.setDisable(false);
+    }
+
+    /**
      * Set the tile size and mine count based on the difficulty.
      */
     private void setDifficulty() {
-        // TODO: Custom difficulty
-        // TODO: Set tile size
-        //  - btn.setMinHeight(25);
-        //  - btn.setMinWidth(25);
+        if (customs.getChildren().size() >= 2) {
+            customs.getChildren().remove(1);
+        }
+
+        start.setDisable(false);
+        mines = 0;
+        size = 0;
 
         switch (diff.getValue()) {
             case "Easy":
@@ -47,8 +80,27 @@ public class Game extends Application {
                 break;
 
             case "Hard":
-                size = 20;
-                mines = 25;
+                size = 15;
+                mines = 40;
+                break;
+
+            case "Custom":
+                HBox container = new HBox(8);
+                container.setPadding(new Insets(10, 10, 4, 4));
+
+                TextField sizeField = new TextField();
+                TextField mineField = new TextField();
+
+                sizeField.setPromptText("Minefield Size");
+                mineField.setPromptText("Number of Mines");
+                start.setDisable(true);
+
+                sizeField.textProperty().addListener((observable, old, n) -> readDifficulty(n, true));
+                mineField.textProperty().addListener((observable, old, n) -> readDifficulty(n, false));
+
+                container.getChildren().addAll(sizeField, mineField);
+                customs.getChildren().add(container);
+
                 break;
         }
     }
@@ -117,7 +169,6 @@ public class Game extends Application {
         }
 
         main.getChildren().addAll(tiles, status);
-
         tiles.setAlignment(Pos.CENTER);
         root.setCenter(main);
     }
@@ -155,8 +206,9 @@ public class Game extends Application {
 
         // Create elements
         root = new BorderPane();
-        diff = new ComboBox<>(FXCollections.observableArrayList("Easy", "Medium", "Hard"));
+        customs = new VBox();
 
+        diff = new ComboBox<>(FXCollections.observableArrayList("Easy", "Medium", "Hard", "Custom"));
         start = new Button("Start");
         status = new Label("");
         flags = new Label("0/?");
@@ -164,6 +216,7 @@ public class Game extends Application {
         status.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.ITALIC, 20));
         flags.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 16));
         diff.setValue("Easy");
+
         setDifficulty();
 
         // Events
@@ -177,7 +230,8 @@ public class Game extends Application {
 
         // Add elements
         control.getChildren().addAll(diff, start, right, flags);
-        root.setTop(control);
+        customs.getChildren().addAll(control);
+        root.setTop(customs);
 
         // Create scene
         Scene scene = new Scene(root, 400, 400);
