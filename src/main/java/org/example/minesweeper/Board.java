@@ -87,8 +87,6 @@ public class Board {
         int top = Math.max(y - 1, 0), bottom = Math.min(y + 1, BOARD.size() - 1);
         int left = Math.max(x - 1, 0), right = Math.min(x + 1, BOARD.size() - 1);
 
-        // TODO: Probably need to check the tile at x/y for mines before revealing nearby...
-
         if (checkEmpty(x, top)) revealEmpty(x, top);
         if (checkEmpty(x, bottom)) revealEmpty(x, bottom);
 

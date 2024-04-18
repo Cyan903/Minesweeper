@@ -145,7 +145,6 @@ public class Game extends Application {
                         if (firstClick) {
                             board.populateBoard(bx, by);
                             board.clickBoard(bx, by);
-                            board.printBoard(true);
 
                             firstClick = false;
                         } else if (board.clickBoard(bx, by)) {
